@@ -293,6 +293,17 @@ async function initCamera() {
         video.srcObject = stream;
         return new Promise((resolve) => {
             video.onloadedmetadata = () => {
+                // Auto-Detect Mirroring Logic
+                const track = stream.getVideoTracks()[0];
+                if (track && track.getSettings) {
+                    const settings = track.getSettings();
+                    // If Back Camera, disable mirror
+                    if (settings.facingMode === 'environment') {
+                        isMirrored = false;
+                    } else {
+                        isMirrored = true;
+                    }
+                }
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
                 video.play();
@@ -474,11 +485,13 @@ function render() {
         smallCanvas.height = h;
     }
 
-    // Draw video frame to small canvas (Flipped to remove mirror effect)
+    // Draw video frame to small canvas
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
         smallCtx.save();
-        smallCtx.translate(w, 0);
-        smallCtx.scale(-1, 1);
+        if (typeof isMirrored === 'undefined' ? true : isMirrored) {
+            smallCtx.translate(w, 0);
+            smallCtx.scale(-1, 1);
+        }
         smallCtx.drawImage(video, 0, 0, w, h);
         smallCtx.restore();
     }
@@ -710,4 +723,12 @@ window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     }
+});
+
+// Mirror Toggle Logic
+let isMirrored = true;
+document.getElementById('mirror-btn')?.addEventListener('click', (e) => {
+    isMirrored = !isMirrored;
+    // Visual feedback handled by render loop, but maybe flash button?
+    e.target.style.color = isMirrored ? '#0f0' : '#888';
 });
