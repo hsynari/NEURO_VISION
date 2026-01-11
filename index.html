@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix ASCII Camera v1.2</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+            overflow: hidden;
+            background-image:
+                linear-gradient(rgba(0, 20, 0, 0.9), rgba(0, 20, 0, 0.9)),
+                linear-gradient(0deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent);
+            background-size: 100% 100%, 50px 50px, 50px 50px;
+        }
+
+        #start-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 900px;
+            text-align: center;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        h1 {
+            font-size: 4rem;
+            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 40px #0f0;
+            margin: 0;
+            letter-spacing: 5px;
+            animation: textFlicker 3s infinite alternate;
+        }
+
+        .panels-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .cyber-card {
+            background: rgba(0, 10, 0, 0.6);
+            border: 1px solid #0f0;
+            padding: 25px;
+            flex: 1;
+            min-width: 300px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.1);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cyber-card:hover {
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.3), inset 0 0 20px rgba(0, 255, 0, 0.1);
+            border-color: #5f5;
+        }
+
+        .cyber-card h2 {
+            font-size: 1.5rem;
+            margin-top: 0;
+            border-bottom: 2px solid #0f0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 5px #0f0;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+            color: #8f8;
+        }
+
+        select,
+        button {
+            width: 100%;
+            background: #000;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+        }
+
+        select:focus,
+        button:hover {
+            background: #0f0;
+            color: #000;
+            box-shadow: 0 0 15px #0f0;
+        }
+
+        /* Video Upload Special Style */
+        .upload-zone {
+            border: 2px dashed #0f0;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            background: rgba(0, 50, 0, 0.2);
+        }
+
+        .upload-zone:hover {
+            background: rgba(0, 100, 0, 0.4);
+            box-shadow: inset 0 0 20px #0f0;
+        }
+
+        #start-btn {
+            font-size: 1.5rem;
+            padding: 20px 50px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            border: 2px solid #0f0;
+            box-shadow: 0 0 20px #0f0;
+            background: #000;
+            margin-top: 20px;
+        }
+
+        #start-btn:hover {
+            background: #0f0;
+            color: #000;
+            box-shadow: 0 0 50px #0f0;
+            transform: scale(1.05);
+        }
+
+        #ascii-canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #video {
+            display: none !important;
+        }
+
+        @keyframes textFlicker {
+            0% {
+                opacity: 1;
+                text-shadow: 0 0 10px #0f0;
+            }
+
+            50% {
+                opacity: 0.9;
+                text-shadow: 0 0 20px #0f0;
+            }
+
+            52% {
+                opacity: 0.4;
+            }
+
+            55% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 1;
+                text-shadow: 0 0 30px #0f0;
+            }
+        }
+
+        /* UI Dock (Moved from inline) */
+        #ui-layer {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            display: none;
+            /* Toggled by JS */
+            flex-direction: row;
+            gap: 15px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 10px 20px;
+            border: 1px solid #0f0;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+            white-space: nowrap;
+            /* Flex wrap default off, enable on mobile */
+        }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media only screen and (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+                line-height: 1.1;
+                margin-bottom: 20px;
+            }
+
+            .panels-container {
+                flex-direction: column;
+                gap: 15px;
+                align-items: center;
+            }
+
+            .cyber-card {
+                width: 90%;
+                min-width: auto;
+                padding: 15px;
+                margin: 0 auto;
+            }
+
+            /* Adjust UI Layer for Mobile */
+            #ui-layer {
+                bottom: 5px;
+                width: 96%;
+                padding: 10px 5px;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+                white-space: normal;
+                border-left: none;
+                border-right: none;
+                border-radius: 0;
+            }
+
+            #ui-layer>div {
+                /* Wrappers for sliders */
+                flex-basis: 45%;
+                justify-content: center;
+            }
+
+            #ui-layer select {
+                font-size: 0.8rem;
+                padding: 3px;
+                max-width: 100px;
+            }
+
+            /* Hide dividers on mobile to save space */
+            #ui-layer span[style*="color: #030"] {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="error-log"></div>
+    <script>
+        window.onerror = function (msg, url, line) {
+            document.getElementById('error-log').innerHTML += "Error: " + msg + "<br>";
+            console.error(msg);
+        };
+    </script>
+    <div id="start-screen">
+        <h1>NEURO_VISION</h1>
+
+        <div class="panels-container">
+            <!-- LIVE FEED CARD -->
+            <div class="cyber-card">
+                <h2>[ LIVE_FEED ]</h2>
+                <div class="input-group">
+                    <label>CAMERA_SENSOR</label>
+                    <select id="video-source"></select>
+                </div>
+                <div class="input-group">
+                    <label>AUDIO_SENSOR</label>
+                    <select id="audio-source"></select>
+                </div>
+                <button id="scan-btn" style="font-size: 0.9rem; padding: 10px;">[ REFRESH_HARDWARE ]</button>
+            </div>
+
+            <!-- MEDIA INPUT CARD -->
+            <div class="cyber-card">
+                <h2>[ MEDIA_INJECTION ]</h2>
+
+                <!-- Video File -->
+                <div class="input-group" style="text-align: center;">
+                    <label style="margin-bottom: 15px;">VIDEO_STREAM_FILE</label>
+                    <input type="file" id="video-upload" accept="video/*" style="display: none;">
+                    <div class="upload-zone" onclick="document.getElementById('video-upload').click()"
+                        id="video-upload-btn">
+                        [ LOAD_VIDEO_FILE ]
+                    </div>
+                    <span id="video-file-name"
+                        style="display: block; margin-top: 10px; font-size: 0.8rem; height: 20px;"></span>
+                </div>
+
+                <!-- Audio Menu -->
+                <div class="input-group"
+                    style="border-top: 1px solid #030; padding-top: 15px; margin-top: 15px; text-align: center;">
+                    <label style="margin-bottom: 10px;">AUDIO_SIGNAL_SOURCE</label>
+
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <!-- MP3 Upload -->
+                        <button id="upload-btn" onclick="document.getElementById('music-upload').click()"
+                            style="padding: 10px; font-size: 0.8rem; background: transparent; border: 1px dashed #0f0; width: 48%;">
+                            [ LOAD_MP3 ]
+                        </button>
+
+                        <!-- Tab Audio -->
+                        <button id="tab-audio-btn"
+                            style="padding: 10px; font-size: 0.8rem; background: transparent; border: 1px dashed #0f0; width: 48%;">
+                            [ TAB/SYS AUDIO ]
+                        </button>
+                    </div>
+
+                    <input type="file" id="music-upload" accept="audio/*" style="display: none;">
+                    <audio id="audio-player" controls loop
+                        style="display:none; margin-top:10px; width: 100%; height: 30px;"></audio>
+                </div>
+            </div>
+        </div>
+
+        <button id="start-btn">INITIALIZE_SYSTEM</button>
+
+        <div id="system-log" style="display:none;"></div>
+    </div>
+
+    <!-- Hidden video element to capture webcam stream -->
+    <video id="video" playsinline></video>
+
+    <!-- UI Overlay for Style Control -->
+    <!-- UI Overlay for Style Control -->
+    <div id="ui-layer">
+
+        <!-- Resolution -->
+        <select id="live-resolution-select"
+            style="background: transparent; border: none; border-bottom: 1px solid #0f0; color: #0f0; padding: 5px; font-family: monospace; cursor: pointer; outline: none;">
+            <option value="1920x1080">RES: 1080p</option>
+            <option value="1280x720">RES: 720p</option>
+            <option value="960x540" selected>RES: 540p</option>
+            <option value="854x480">RES: 480p</option>
+            <option value="640x480">RES: 4:3</option>
+            <option value="500x500">RES: 1:1</option>
+        </select>
+
+        <!-- Divider -->
+        <span style="color: #030;">|</span>
+
+        <!-- Size Slider -->
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <label style="color: #0f0; font-family: monospace; font-size: 0.9rem;">SIZE</label>
+            <input type="range" id="live-size-control" min="6" max="64" value="12" step="1"
+                style="width: 100px; accent-color: #0f0; cursor: pointer; height: 5px;">
+            <span id="size-val"
+                style="color: #0f0; font-family: monospace; font-size: 0.9rem; min-width: 35px;">12px</span>
+        </div>
+
+        <!-- Divider -->
+        <span style="color: #030;">|</span>
+
+        <!-- Brightness -->
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <label style="color: #0f0; font-family: monospace; font-size: 0.9rem;">BRT</label>
+            <input type="range" id="live-brightness-control" min="-100" max="100" value="10" step="5"
+                style="width: 80px; accent-color: #0f0; cursor: pointer; height: 5px;">
+        </div>
+
+        <!-- Divider -->
+        <span style="color: #030;">|</span>
+
+        <!-- Color -->
+        <select id="live-color-control"
+            style="background: transparent; border: none; border-bottom: 1px solid #0f0; color: #0f0; padding: 5px; font-family: monospace; cursor: pointer; outline: none;">
+            <option value="dynamic" selected>CLR: DYNAMIC</option>
+            <option value="matrix">CLR: MATRIX</option>
+            <option value="cyber">CLR: CYBER</option>
+            <option value="fire">CLR: FIRE</option>
+            <option value="bw">CLR: B&W</option>
+            <option value="fade_up_down">CLR: FADE UP-DOWN</option>
+            <option value="rainbow">CLR: RAINBOW</option>
+        </select>
+
+        <!-- Divider -->
+        <span style="color: #030;">|</span>
+
+        <!-- Style -->
+        <select id="live-style-select"
+            style="background: transparent; border: none; border-bottom: 1px solid #0f0; color: #0f0; padding: 5px; font-family: monospace; cursor: pointer; outline: none;">
+            <option value="japanese">TXT: MATRIX</option>
+            <option value="ascii">TXT: ASCII</option>
+            <option value="binary">TXT: BINARY</option>
+            <option value="blocks">TXT: BLOCKS</option>
+            <option value="runes">TXT: RUNES</option>
+            <option value="math">TXT: MATH</option>
+            <option value="braille">TXT: BRAILLE</option>
+            <option value="dots">TXT: DOTS</option>
+        </select>
+
+        <!-- Snapshot -->
+        <button id="snapshot-btn"
+            style="background: transparent; border: none; color: #0f0; cursor: pointer; font-size: 1.2rem; padding: 0 10px;"
+            title="Save Snapshot">
+            [ 📷 ]
+        </button>
+    </div>
+
+    <!-- Main canvas to render ASCII -->
+    <canvas id="ascii-canvas"></canvas>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
