@@ -662,7 +662,15 @@ initMatrixRain();
 
 // Dynamic Resolution Based on Device
 function updateResolutionOptions() {
-    const isMobile = window.innerWidth <= 768;
+    // Robust Mobile Detection
+    const ua = navigator.userAgent.toLowerCase();
+    const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(ua);
+    const isSmallScreen = window.innerWidth <= 800;
+
+    const isMobile = isMobileUA || isSmallScreen;
+
+    console.log("Device Detection:", { isMobile, isMobileUA, width: window.innerWidth });
+
     const select = document.getElementById('live-resolution-select');
     if (!select) return;
 
@@ -671,10 +679,11 @@ function updateResolutionOptions() {
     let opts = [];
     if (isMobile) {
         opts = [
-            { t: 'Mobile HD (Vert)', v: '720x1280' },
+            { t: 'Mobile HD (Vert)', v: '720x1280', s: true }, // Default for Mobile
             { t: 'Mobile SD (Vert)', v: '480x640' },
             { t: 'Square (1:1)', v: '600x600' },
-            { t: 'Landscape HD', v: '1280x720' }
+            { t: 'Landscape HD', v: '1280x720' },
+            { t: 'Landscape Full', v: '1920x1080' }
         ];
     } else {
         opts = [
