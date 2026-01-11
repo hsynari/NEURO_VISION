@@ -659,6 +659,42 @@ document.getElementById('snapshot-btn')?.addEventListener('click', () => {
 
 // Start Matrix Rain on Load
 initMatrixRain();
+
+// Dynamic Resolution Based on Device
+function updateResolutionOptions() {
+    const isMobile = window.innerWidth <= 768;
+    const select = document.getElementById('live-resolution-select');
+    if (!select) return;
+
+    select.innerHTML = ''; // Clear default
+
+    let opts = [];
+    if (isMobile) {
+        opts = [
+            { t: 'Mobile HD (Vert)', v: '720x1280' },
+            { t: 'Mobile SD (Vert)', v: '480x640' },
+            { t: 'Square (1:1)', v: '600x600' },
+            { t: 'Landscape HD', v: '1280x720' }
+        ];
+    } else {
+        opts = [
+            { t: '1080p Full HD', v: '1920x1080' },
+            { t: '720p HD', v: '1280x720', s: true },
+            { t: '540p qHD', v: '960x540' },
+            { t: '480p SD', v: '854x480' }
+        ];
+    }
+
+    opts.forEach(o => {
+        const el = document.createElement('option');
+        el.value = o.v;
+        el.innerText = o.t;
+        if (o.s) el.selected = true;
+        select.appendChild(el);
+    });
+}
+updateResolutionOptions();
+
 window.addEventListener('resize', () => {
     if (bgActive) initMatrixRain();
     else {
