@@ -296,17 +296,7 @@ async function initCamera() {
         video.srcObject = stream;
         return new Promise((resolve) => {
             video.onloadedmetadata = () => {
-                // Auto-Detect Mirroring Logic
-                const track = stream.getVideoTracks()[0];
-                if (track && track.getSettings) {
-                    const settings = track.getSettings();
-                    // If Back Camera, disable mirror
-                    if (settings.facingMode === 'environment') {
-                        isMirrored = false;
-                    } else {
-                        isMirrored = true;
-                    }
-                }
+                // Auto-Detect removed. Manual control only.
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
                 video.play();
@@ -491,7 +481,7 @@ function render() {
     // Draw video frame to small canvas
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
         smallCtx.save();
-        if (typeof isMirrored === 'undefined' ? true : isMirrored) {
+        if (isMirrored) {
             smallCtx.translate(w, 0);
             smallCtx.scale(-1, 1);
         }
