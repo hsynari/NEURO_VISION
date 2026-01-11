@@ -11,6 +11,9 @@ const video = document.createElement('video');
 video.setAttribute('playsinline', ''); // Critical for Mobile (iOS)
 video.setAttribute('webkit-playsinline', '');
 video.muted = true; // Video stream must be muted to autoplay allowed often
+
+// State Variables
+let isMirrored = true; // Default Mirror State
 const startBtn = document.getElementById('start-btn');
 const startScreen = document.getElementById('start-screen');
 const videoSelect = document.getElementById('video-source');
@@ -726,7 +729,7 @@ window.addEventListener('resize', () => {
 });
 
 // Mirror Toggle Logic
-let isMirrored = true;
+// isMirrored global defined at top
 document.getElementById('mirror-btn')?.addEventListener('click', (e) => {
     isMirrored = !isMirrored;
     // Visual feedback handled by render loop, but maybe flash button?
